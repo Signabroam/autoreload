@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>KeamsOS Autoreload "Free"</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #loginBox {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        #loginBox label, #loginBox select, #loginBox input {
+            color: white;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            font-family: 'Arial', sans-serif;
+            background-color: black;
+        }
+
+        #loginBox button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #00FF00;
+            color: black;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #reloadText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00FF00;
+            font-size: 3rem;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            z-index: 1;
+            opacity: 0.8;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+        #reloadInfo {
+            font-size: 1.5rem;
+            color: #FFFF00;
+        }
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 2;
+        }
+
+        #mainContent {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginBox">
+    <label for="frequency">Frequency:</label>
+    <input type="number" id="frequency" placeholder="Enter frequency (e.g., 4625)">
+    
+    <label for="mode">Mode:</label>
+    <select id="mode">
+        <option value="am">AM</option>
+        <option value="amn">AM Narrow</option>
+        <option value="amw">AM Wide</option>
+        <option value="sam">Sync AM</option>
+        <option value="sal">Sync AM Lower</option>
+        <option value="sau">Sync AM Upper</option>
+        <option value="sas">Sync AM Stereo</option>
+        <option value="qam">Quadrature AM</option>
+        <option value="lsb">LSB</option>
+        <option value="lsn">LSB Narrow</option>
+        <option value="usb">USB</option>
+        <option value="usn">USB Narrow</option>
+        <option value="cw">CW</option>
+        <option value="cwn">CW Narrow</option>
+        <option value="nbfm">NBFM</option>
+        <option value="nnfm">NBFM Narrow</option>
+        <option value="iq">IQ</option>
+    </select>
+
+    <label>Country</label>
+    <input type="text" id="country" placeholder="Ex: France, Sweden, Poland">
+
+    <ul>
+        <li>Click <a href="http://www.eibispace.de/dx/freq-a24.txt" target="_blank">here</a> to visit the EIBI SW frequency calendar & logs</li>
+    </ul>
+
+    <button onclick="confirmSettings()">Confirm</button>
+</div>
+
+<div id="mainContent">
+    <div id="reloadText">
+        KeamsOS AutoReload
+        <div id="reloadInfo">reloading SDR</div>
+    </div>
+    <iframe id="webFrame" src=""></iframe>
+</div>
+
+<script>
+    let iframe = document.getElementById('webFrame');
+    let reloadText = document.getElementById('reloadText');
+    let reloadInfo = document.getElementById('reloadInfo');
+    let reloadInterval = 1800000; // 30 min
+    let countdownTimer;
+
+    let selectedFrequency = null;
+    let selectedMode = null;
+    let currentSDRList = [];
+
+    async function confirmSettings() {
+        const countryInput = document.getElementById('country').value.trim();
+        selectedFrequency = document.getElementById('frequency').value.trim();
+        selectedMode = document.getElementById('mode').value;
+
+        if (!countryInput || !selectedFrequency || !selectedMode) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        const selectedCountries = countryInput.split(",").map(c => c.trim().toLowerCase());
+
+        try {
+            currentSDRList = await getSDRsByCountry(selectedCountries);
+            if (currentSDRList.length === 0) {
+                alert("No SDRs found for the specified countries.");
+                return;
+            }
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadRandomSDR();
+        } catch (error) {
+            console.error(error);
+            alert("Error fetching data.");
+        }
+    }
+
+    async function getSDRsByCountry(countries) {
+        const response = await fetch('https://api.codetabs.com/v1/proxy/?quest=http://kiwisdr.com/public/');
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const entries = doc.querySelectorAll('.cl-entry');
+        const sdrs = [];
+
+        entries.forEach(entry => {
+            const locMatch = entry.innerHTML.match(/<!--\s*loc=(.*?)\s*-->/);
+            const usersMatch = entry.innerHTML.match(/<!--\s*users=(\d+)\s*-->/);
+            const usersMaxMatch = entry.innerHTML.match(/<!--\s*users_max=(\d+)\s*-->/);
+            const urlMatch = entry.innerHTML.match(/<a href='(http[^']+)'/);
+
+            if (locMatch && usersMatch && usersMaxMatch && urlMatch) {
+                const loc = locMatch[1].toLowerCase();
+                const users = parseInt(usersMatch[1]);
+                const usersMax = parseInt(usersMaxMatch[1]);
+                const url = urlMatch[1];
+
+                const countryMatch = countries.some(country => loc.includes(country.toLowerCase()));
+
+                if (countryMatch && users < usersMax) {
+                    sdrs.push(url);
+                }
+            }
+        });
+
+        return sdrs;
+    }
+
+    function loadRandomSDR() {
+        if (currentSDRList.length === 0) {
+            reloadText.innerText = "No SDR available.";
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * currentSDRList.length);
+        const url = currentSDRList[randomIndex];
+        iframe.src = `${url}/?f=${selectedFrequency}${selectedMode}z11`;
+        reloadText.innerText = `Loaded: ${url}`;
+        startCountdown();
+    }
+
+    function startCountdown() {
+        let remainingTime = reloadInterval / 1000;
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+            remainingTime--;
+            reloadInfo.innerText = `Next reload in ${remainingTime} seconds`;
+            if (remainingTime <= 0) {
+                clearInterval(countdownTimer);
+                loadRandomSDR();
+            }
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
