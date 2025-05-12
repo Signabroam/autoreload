@@ -122,6 +122,64 @@
             border-radius: 8px;
             background-color: rgba(255, 255, 255, 0.1);
         }
+        .sepline {
+            border-top: 2px solid rgba(255, 255, 255, 0.2); /* Ligne fine et semi-transparente */
+            margin: 20px 0; /* Espacement au-dessus et en dessous */
+        }
+        .request {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .request h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .request p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .request form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .request label {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .request select,
+        .request textarea,
+        .request button {
+            font-size: 1rem;
+            padding: 10px;
+            border: 1px solid rgba(107, 83, 83, 0.2);
+            border-radius: 5px;
+            background-color: rgba(19, 16, 16, 0.5);
+            color: white;
+        }
+
+        .request textarea {
+            resize: none;
+        }
+
+        .request button {
+            background-color: #1c1c3d;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .request button:hover {
+            background-color: #2a2a5a;
+        }
     </style>
     <script type="module" src="time.js"></script>
 <style>
@@ -199,6 +257,75 @@
                     <a href="./vega/v3.5.html">Click here to access!</a>
                 </div>
 </section>
+<div class="sepline"></div>
+
+<section class="request">
+    <h3>Request what you want to add here!</h3>
+    <p>We will add it in the next update!</p>
+    <form id="request-form">
+        <label for="request-type">Request Type:</label>
+        <select id="request-type" name="request-type">
+            <option value="function">New Function</option>
+            <option value="sdr-add">Add SDR</option>
+            <option value="sdr-remove">Remove SDR</option>
+            <option value="bug">Bug Report</option>
+            <option value="issue">Issue</option>
+            <option value="improvement">Improvement</option>
+            <option value="design">Design Change</option>
+            <option value="feature">Feature Request</option>
+            <option value="other">Other</option>
+        </select>
+        <label for="message">Your Message:</label>
+        <textarea id="message" name="message" rows="4" placeholder="Describe your request here..."></textarea>
+        <button type="submit">Submit Request</button>
+    </form>
+</section>
+
+<script>
+    async function getClientIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip; // Retourne l'adresse IP
+        } catch (error) {
+            console.error('Failed to fetch IP:', error);
+            return 'Unknown IP';
+        }
+    }
+
+    document.getElementById('request-form').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        const requestType = document.getElementById('request-type').value;
+        const message = document.getElementById('message').value;
+        const clientIP = await getClientIP(); // Obtenez l'IP du client
+
+        // Préparez la charge utile pour le webhook Discord
+        const payload = {
+            content: `**New Request Submitted**\n**Type:** ${requestType}\n**Message:** ${message}\n**IP Address:** ${clientIP}`
+        };
+
+        try {
+            // Envoyez la requête POST au webhook Discord
+            const response = await fetch('https://discord.com/api/webhooks/1371433935875342347/iMg3MBBNYc9Q71AqYTx5Od2oYKNXYQ5COmIb-degI52mZ4rS7yGUnNEpxBcy9zZrJnmP', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert('Your request has been submitted successfully!');
+            } else {
+                alert('Failed to submit your request. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while submitting your request.');
+        }
+    });
+</script>
 
         <!-- Footer -->
         <footer>
