@@ -18,7 +18,7 @@ const reloadMinutes = 30; // adjusted to retry connections sooner
 const retryMinutes = 0.1; // retry failed connections after 5 minutes
 
 const kiwiConfig = {
-    freq: "4325",
+    freq: "8514",
     mode: "usb",
     zoom: "11",
     startPass: "0",
