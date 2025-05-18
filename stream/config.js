@@ -1,7 +1,6 @@
 const kiwilistDay = [
     { url: "http://kiwi-vih.aprs.fi:8073", timeout: 30, timelimit: 120 }, 
     { url: "http://oh5ae.dyndns.org:8073/", timeout: 60, timelimit: 120 },
-    { url: "http://oh2bua.fi:8073/", timeout: 30, timelimit: 120 },
     { url: "http://kar.proxy.kiwisdr.com:8073/", timeout: null, timelimit: null },
     { url: "http://sdxlkiwi7.proxy.kiwisdr.com:8073/", timeout: 30, timelimit: 120 },
     { url: "http://oh3aa.dy.fi:18073/", timeout: 30, timelimit: 120 },
@@ -10,7 +9,6 @@ const kiwilistDay = [
 const kiwilistNight = [
     { url: "http://kiwi-vih.aprs.fi:8073", timeout: 30, timelimit: 120 }, 
     { url: "http://oh5ae.dyndns.org:8073/", timeout: 60, timelimit: 120 },
-    { url: "http://oh2bua.fi:8073/", timeout: 30, timelimit: 120 },
     { url: "http://kar.proxy.kiwisdr.com:8073/", timeout: null, timelimit: null },
     { url: "http://sdxlkiwi7.proxy.kiwisdr.com:8073/", timeout: 30, timelimit: 120 },
     { url: "http://oh3aa.dy.fi:18073/", timeout: 30, timelimit: 120 },
