@@ -26,7 +26,7 @@ const kiwiConfig = {
     startPass: "0",
     endPass: "3500",
     colormap: "1",
-    volume: "180",
+    volume: "180&keys=yyyxs",
 };
 
 const config = {
