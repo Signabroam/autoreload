@@ -307,7 +307,7 @@
 
         try {
             // Envoyez la requête POST au webhook Discord
-            const response = await fetch('https://discord.com/api/webhooks/1371433935875342347/iMg3MBBNYc9Q71AqYTx5Od2oYKNXYQ5COmIb-degI52mZ4rS7yGUnNEpxBcy9zZrJnmP', {
+            const response = await fetch(process.env.DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
