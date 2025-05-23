@@ -40,6 +40,10 @@ jobs:
         with:
           # Upload entire repository
           path: '.'
+      - name: Installations
+        uses: npm install express
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: 
+           actions/deploy-pages@v4
+           node server.js
